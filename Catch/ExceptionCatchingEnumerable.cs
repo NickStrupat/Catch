@@ -1,17 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Tests {
     public sealed class ExceptionCatchingEnumerable<TSource> : IEnumerable<Result<TSource, Exception>>
     {
         private readonly IEnumerable<TSource> source;
-        private readonly IsEx[] toCatch;
-        private readonly IsEx[] toIgnore;
+        private readonly IEnumerable<IsEx> toCatch;
+        private readonly IEnumerable<IsEx> toIgnore;
 
         internal ExceptionCatchingEnumerable(IEnumerable<TSource> source) => this.source = source;
-        internal ExceptionCatchingEnumerable(IEnumerable<TSource> source, params IsEx[] toCatch) : this(source) => this.toCatch = toCatch ?? Array.Empty<IsEx>();
-        internal ExceptionCatchingEnumerable(IEnumerable<TSource> source, IsEx[] toCatch, params IsEx[] toIgnore) : this(source, toCatch) => this.toIgnore = toIgnore ?? Array.Empty<IsEx>();
+        internal ExceptionCatchingEnumerable(IEnumerable<TSource> source, params IsEx[] toCatch) : this(source) => this.toCatch = toCatch ?? Enumerable.Empty<IsEx>();
+        internal ExceptionCatchingEnumerable(IEnumerable<TSource> source, IsEx[] toCatch, params IsEx[] toIgnore) : this(source, toCatch) => this.toIgnore = toIgnore ?? Enumerable.Empty<IsEx>();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public IEnumerator<Result<TSource, Exception>> GetEnumerator()
@@ -62,54 +63,9 @@ namespace Tests {
         internal delegate Boolean IsEx(Exception exception);
         private static Boolean Is<TException>(Exception exception) => exception is TException;
 
-        public ExceptionCatchingEnumerable<TSource> Types<TException>()
+        public ExceptionCatchingEnumerable<TSource> Thrown<TException>()
             where TException : Exception
-            => new ExceptionCatchingEnumerable<TSource>(source, Is<TException>);
-
-        public ExceptionCatchingEnumerable<TSource> Types<TEx1, TEx2>()
-            where TEx1 : Exception
-            where TEx2 : Exception
-            => new ExceptionCatchingEnumerable<TSource>(source, Is<TEx1>, Is<TEx2>);
-
-        public ExceptionCatchingEnumerable<TSource> Types<TEx1, TEx2, TEx3>()
-            where TEx1 : Exception
-            where TEx2 : Exception
-            where TEx3 : Exception
-            => new ExceptionCatchingEnumerable<TSource>(source, Is<TEx1>, Is<TEx2>, Is<TEx3>);
-
-        public ExceptionCatchingEnumerable<TSource> Types<TEx1, TEx2, TEx3, TEx4>()
-            where TEx1 : Exception
-            where TEx2 : Exception
-            where TEx3 : Exception
-            where TEx4 : Exception
-            => new ExceptionCatchingEnumerable<TSource>(source, Is<TEx1>, Is<TEx2>, Is<TEx3>, Is<TEx4>);
-
-
-
-        public ExceptionCatchingEnumerable<TSource> Types<TEx1, TEx2, TEx3, TEx4, TEx5, TEx6, TEx7, TEx8, TEx9>()
-            where TEx1 : Exception
-            where TEx2 : Exception
-            where TEx3 : Exception
-            where TEx4 : Exception
-            where TEx5 : Exception
-            where TEx6 : Exception
-            where TEx7 : Exception
-            where TEx8 : Exception
-            where TEx9 : Exception
-            => new ExceptionCatchingEnumerable<TSource>(source, Is<TEx1>, Is<TEx2>, Is<TEx3>, Is<TEx4>, Is<TEx5>, Is<TEx6>, Is<TEx7>, Is<TEx8>, Is<TEx9>);
-
-        public ExceptionCatchingEnumerable<TSource> Types<TEx1, TEx2, TEx3, TEx4, TEx5, TEx6, TEx7, TEx8, TEx9, TEx10>()
-            where TEx1 : Exception
-            where TEx2 : Exception
-            where TEx3 : Exception
-            where TEx4 : Exception
-            where TEx5 : Exception
-            where TEx6 : Exception
-            where TEx7 : Exception
-            where TEx8 : Exception
-            where TEx9 : Exception
-            where TEx10 : Exception
-            => new ExceptionCatchingEnumerable<TSource>(source, Is<TEx1>, Is<TEx2>, Is<TEx3>, Is<TEx4>, Is<TEx5>, Is<TEx6>, Is<TEx7>, Is<TEx8>, Is<TEx9>, Is<TEx10>);
+            => new ExceptionCatchingEnumerable<TSource>(source, toCatch.Concat(new IsEx[] { Is<TException> }).ToArray());
 
 
 
